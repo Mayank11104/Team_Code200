@@ -9,6 +9,7 @@ CREATE TABLE "User" (
     id SERIAL PRIMARY KEY,
     name VARCHAR(150) NOT NULL,
     email VARCHAR(150) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
     role VARCHAR(20) NOT NULL CHECK (role IN ('admin', 'manager', 'technician', 'employee')),
     avatar_url TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -119,3 +120,11 @@ CREATE INDEX idx_equipment_team ON Equipment(maintenance_team_id);
 CREATE INDEX idx_request_status ON MaintenanceRequest(status);
 CREATE INDEX idx_request_equipment ON MaintenanceRequest(equipment_id);
 CREATE INDEX idx_request_team ON MaintenanceRequest(maintenance_team_id);
+
+-- ---------- LOGIN HISTORY ----------
+CREATE TABLE LoginHistory (
+    id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL REFERENCES "User"(id),
+    login_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    ip_address VARCHAR(45)
+);

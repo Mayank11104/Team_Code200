@@ -12,19 +12,44 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onSwitchToSign
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     role: 'technician' as 'admin' | 'manager' | 'technician' | 'employee',
-    email: '',
+    username: '',
     password: '',
-  });
+  }); 
   const [rememberMe, setRememberMe] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Add login API call here
-    console.log('Login:', formData);
-    // Navigate to dashboard after successful login
-    navigate('/dashboard');
+    setError(null);
+
+    const params = new URLSearchParams();
+    params.append('username', formData.username);
+    params.append('password', formData.password);
+    params.append('role', formData.role);
+
+    try {
+      const response = await fetch('http://127.0.0.1:8000/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: params,
+      });
+
+      if (response.ok) {
+        console.log('Login successful');
+        navigate('/dashboard');
+        onClose(); // Close modal on success
+      } else {
+        const errorData = await response.json();
+        setError(errorData.detail || 'An unknown error occurred.');
+      }
+    } catch (error) {
+      console.error('An error occurred during login:', error);
+      setError('Could not connect to the server.');
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -101,9 +126,9 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onSwitchToSign
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
               <input
-                type="email"
-                name="email"
-                value={formData.email}
+                type="text"
+                name="username"
+                value={formData.username}
                 onChange={handleChange}
                 placeholder="your@email.com"
                 required

@@ -1,18 +1,18 @@
 import React, { useState } from 'react';
-import { X, Mail, Lock, User, UserCircle, Eye, EyeOff } from 'lucide-react';
+import { X, Mail, Lock, User, Eye, EyeOff } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+
 
 interface SignUpModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSwitchToLogin?: () => void; // ✅ Add this prop
+  onSwitchToLogin?: () => void;
 }
 
 const SignUpModal: React.FC<SignUpModalProps> = ({ isOpen, onClose, onSwitchToLogin }) => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: '',
-    role: 'technician' as 'admin' | 'manager' | 'technician' | 'employee',
     email: '',
     password: '',
     confirmPassword: '',
@@ -20,16 +20,16 @@ const SignUpModal: React.FC<SignUpModalProps> = ({ isOpen, onClose, onSwitchToLo
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [errors, setErrors] = useState({
-    password: '',
     confirmPassword: '',
+    general: '',
   });
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Validate passwords match
+    setErrors({ confirmPassword: '', general: '' });
+
     if (formData.password !== formData.confirmPassword) {
       setErrors({
         ...errors,
@@ -38,20 +38,59 @@ const SignUpModal: React.FC<SignUpModalProps> = ({ isOpen, onClose, onSwitchToLo
       return;
     }
 
-    // TODO: Add signup API call here
-    console.log('Sign Up:', formData);
-    // Navigate to dashboard after successful signup
-    navigate('/dashboard');
+    try {
+      const response = await fetch('http://127.0.0.1:8000/auth/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+        }),
+      });
+
+      if (response.ok) {
+        // Auto login after signup
+        const params = new URLSearchParams();
+        params.append('username', formData.email);
+        params.append('password', formData.password);
+        params.append('role', 'employee'); // Role is fixed to employee
+
+        const loginResponse = await fetch('http://127.0.0.1:8000/auth/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: params,
+        });
+
+        if (loginResponse.ok) {
+          console.log('Signup and login successful');
+          navigate('/dashboard');
+          onClose();
+        } else {
+          setErrors({ ...errors, general: 'Auto-login failed after signup.' });
+        }
+      } else {
+        const errorData = await response.json();
+        setErrors({ ...errors, general: errorData.detail || 'Sign up failed' });
+      }
+    } catch (error) {
+      console.error('An error occurred during sign up:', error);
+      setErrors({ ...errors, general: 'Could not connect to the server.' });
+    }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
     });
     // Clear errors when user types
     if (e.target.name === 'password' || e.target.name === 'confirmPassword') {
-      setErrors({ password: '', confirmPassword: '' });
+      setErrors({ confirmPassword: '', general: '' });
     }
   };
 
@@ -81,10 +120,32 @@ const SignUpModal: React.FC<SignUpModalProps> = ({ isOpen, onClose, onSwitchToLo
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-5">
+          {/* Error Message */}
+          {errors.general && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-sm text-red-600 font-medium">{errors.general}</p>
+            </div>
+          )}
+
+          {/* Info Box */}
+          <div className="p-4 bg-blue-50 border-2 border-blue-200 rounded-lg">
+            <div className="flex items-start gap-2">
+              <svg className="w-5 h-5 text-blue-600 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+              </svg>
+              <div>
+                <p className="text-sm font-semibold text-blue-900 mb-1">Account Access</p>
+                <p className="text-xs text-blue-800">
+                  New accounts are created with <strong>Employee</strong> access. Contact your system administrator to request elevated permissions (Manager, Technician, or Admin).
+                </p>
+              </div>
+            </div>
+          </div>
+
           {/* Name Field */}
           <div>
             <label className="block text-sm font-semibold text-[#090A0C] mb-2">
-              Full Name
+              Full Name <span className="text-red-500">*</span>
             </label>
             <div className="relative">
               <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -100,38 +161,10 @@ const SignUpModal: React.FC<SignUpModalProps> = ({ isOpen, onClose, onSwitchToLo
             </div>
           </div>
 
-          {/* Role Dropdown */}
-          <div>
-            <label className="block text-sm font-semibold text-[#090A0C] mb-2">
-              Select Role
-            </label>
-            <div className="relative">
-              <UserCircle className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <select
-                name="role"
-                value={formData.role}
-                onChange={handleChange}
-                required
-                className="w-full pl-10 pr-4 py-3 border-2 border-gray-300 rounded-lg focus:border-[#090A0C] focus:outline-none transition-colors text-[#090A0C] appearance-none bg-white cursor-pointer hover:border-gray-400"
-              >
-                <option value="admin">Admin</option>
-                <option value="manager">Manager</option>
-                <option value="technician">Technician</option>
-                <option value="employee">Employee</option>
-              </select>
-              {/* Custom dropdown arrow */}
-              <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
-                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </div>
-            </div>
-          </div>
-
           {/* Email Field */}
           <div>
             <label className="block text-sm font-semibold text-[#090A0C] mb-2">
-              Email Address
+              Email Address <span className="text-red-500">*</span>
             </label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -140,7 +173,7 @@ const SignUpModal: React.FC<SignUpModalProps> = ({ isOpen, onClose, onSwitchToLo
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                placeholder="your@email.com"
+                placeholder="your@company.com"
                 required
                 className="w-full pl-10 pr-4 py-3 border-2 border-gray-300 rounded-lg focus:border-[#090A0C] focus:outline-none transition-colors text-[#090A0C] hover:border-gray-400"
               />
@@ -150,7 +183,7 @@ const SignUpModal: React.FC<SignUpModalProps> = ({ isOpen, onClose, onSwitchToLo
           {/* Password Field */}
           <div>
             <label className="block text-sm font-semibold text-[#090A0C] mb-2">
-              Password
+              Password <span className="text-red-500">*</span>
             </label>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -172,7 +205,10 @@ const SignUpModal: React.FC<SignUpModalProps> = ({ isOpen, onClose, onSwitchToLo
                 {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
             </div>
-            <p className="text-xs text-[#090A0C] opacity-60 mt-1">
+            <p className="text-xs text-[#090A0C] opacity-60 mt-1.5 flex items-center gap-1">
+              <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
               Must be at least 8 characters
             </p>
           </div>
@@ -180,7 +216,7 @@ const SignUpModal: React.FC<SignUpModalProps> = ({ isOpen, onClose, onSwitchToLo
           {/* Confirm Password Field */}
           <div>
             <label className="block text-sm font-semibold text-[#090A0C] mb-2">
-              Re-enter Password
+              Confirm Password <span className="text-red-500">*</span>
             </label>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -205,7 +241,10 @@ const SignUpModal: React.FC<SignUpModalProps> = ({ isOpen, onClose, onSwitchToLo
               </button>
             </div>
             {errors.confirmPassword && (
-              <p className="text-xs text-red-600 mt-1 font-medium">
+              <p className="text-xs text-red-600 mt-1.5 font-medium flex items-center gap-1">
+                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
                 {errors.confirmPassword}
               </p>
             )}
@@ -220,11 +259,11 @@ const SignUpModal: React.FC<SignUpModalProps> = ({ isOpen, onClose, onSwitchToLo
             />
             <span className="ml-2 text-sm text-[#090A0C] opacity-80">
               I agree to the{' '}
-              <button type="button" className="font-semibold hover:underline">
+              <button type="button" className="font-semibold hover:underline text-[#090A0C]">
                 Terms of Service
               </button>{' '}
               and{' '}
-              <button type="button" className="font-semibold hover:underline">
+              <button type="button" className="font-semibold hover:underline text-[#090A0C]">
                 Privacy Policy
               </button>
             </span>
@@ -239,14 +278,14 @@ const SignUpModal: React.FC<SignUpModalProps> = ({ isOpen, onClose, onSwitchToLo
           </button>
         </form>
 
-        {/* Footer - ✅ UPDATED */}
+        {/* Footer */}
         <div className="p-6 bg-[#EBEEF7] rounded-b-2xl text-center border-t border-gray-200">
           <p className="text-[#090A0C] opacity-80">
             Already have an account?{' '}
             <button
               onClick={() => {
                 if (onSwitchToLogin) {
-                  onSwitchToLogin(); // ✅ Call the switch function
+                  onSwitchToLogin();
                 }
               }}
               className="font-bold text-[#090A0C] hover:underline transition-all"
