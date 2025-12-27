@@ -27,89 +27,47 @@ export default function Dashboard() {
     <div className="space-y-6 animate-fade-in">
       {/* Page Header */}
       <div>
-        <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
-        <p className="text-muted-foreground mt-1">Overview of your maintenance operations</p>
+        <h1 className="text-4xl font-bold text-foreground">Dashboard</h1>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard
-          title="Total Equipment"
-          value={dashboardStats.totalEquipment}
-          icon={Cog}
-          variant="primary"
-        />
-        <StatCard
-          title="Active Requests"
-          value={dashboardStats.activeRequests}
-          icon={Wrench}
-          variant="warning"
-        />
-        <StatCard
-          title="Completed This Month"
-          value={dashboardStats.completedThisMonth}
-          icon={CheckCircle}
-          variant="success"
-        />
-        <StatCard
-          title="Overdue Requests"
-          value={dashboardStats.overdueRequests}
-          icon={AlertTriangle}
-          variant="danger"
-        />
-      </div>
-
-      {/* Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Requests by Status */}
-        <div className="card-enterprise p-6">
-          <h3 className="text-lg font-semibold text-foreground mb-4">Requests by Status</h3>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={dashboardStats.requestsByStatus}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={100}
-                  paddingAngle={2}
-                  dataKey="count"
-                  nameKey="status"
-                  label={({ status, count }) => `${status}: ${count}`}
-                >
-                  {dashboardStats.requestsByStatus.map((_, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Critical Equipment */}
+        <div className="relative overflow-hidden rounded-xl border bg-card p-6 shadow-sm border-red-200 bg-red-50/50">
+          <div className="flex flex-col items-center justify-center text-center space-y-2">
+            <h3 className="text-lg font-medium text-red-900">Critical Equipment</h3>
+            <div className="text-3xl font-bold text-red-700">5 Units</div>
+            <p className="text-sm font-medium text-red-800/80">(Health &lt; 30%)</p>
           </div>
         </div>
 
-        {/* Requests by Team */}
-        <div className="card-enterprise p-6">
-          <h3 className="text-lg font-semibold text-foreground mb-4">Requests by Team</h3>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={dashboardStats.requestsByTeam} layout="vertical">
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis type="number" />
-                <YAxis dataKey="team" type="category" width={100} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: 'hsl(var(--card))',
-                    border: '1px solid hsl(var(--border))',
-                    borderRadius: '8px',
-                  }}
-                />
-                <Bar dataKey="count" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+        {/* Technician Load */}
+        <div className="relative overflow-hidden rounded-xl border bg-card p-6 shadow-sm border-blue-200 bg-blue-50/50">
+          <div className="flex flex-col items-center justify-center text-center space-y-2">
+            <h3 className="text-lg font-medium text-blue-900">Technician Load</h3>
+            <div className="text-3xl font-bold text-blue-700">85% Utilized</div>
+            <p className="text-sm font-medium text-blue-800/80">(Assign Carefully)</p>
+          </div>
+        </div>
+
+        {/* Open Requests */}
+        <div className="relative overflow-hidden rounded-xl border bg-card p-6 shadow-sm border-emerald-200 bg-emerald-50/50">
+          <div className="flex flex-col items-center justify-center text-center space-y-2">
+            <h3 className="text-lg font-medium text-emerald-900">Open Requests</h3>
+            <div className="flex flex-col gap-1 items-center">
+              <div className="text-2xl font-bold text-emerald-700">
+                {dashboardStats.activeRequests} Pending
+              </div>
+              <div className="text-lg font-semibold text-emerald-800/80">
+                {dashboardStats.overdueRequests} Overdue
+              </div>
+            </div>
           </div>
         </div>
       </div>
+
+
 
       {/* Bottom Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -171,13 +129,12 @@ export default function Dashboard() {
                     </span>
                   )}
                   <span
-                    className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                      eq.status === 'operational'
+                    className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${eq.status === 'operational'
                         ? 'bg-emerald-100 text-emerald-800'
                         : eq.status === 'under-maintenance'
-                        ? 'bg-amber-100 text-amber-800'
-                        : 'bg-red-100 text-red-800'
-                    }`}
+                          ? 'bg-amber-100 text-amber-800'
+                          : 'bg-red-100 text-red-800'
+                      }`}
                   >
                     {eq.status === 'operational' ? 'Operational' : eq.status === 'under-maintenance' ? 'Maintenance' : 'Scrapped'}
                   </span>
