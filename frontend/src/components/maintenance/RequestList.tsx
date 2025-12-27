@@ -10,7 +10,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { cn } from '@/lib/utils';
-import { AlertTriangle, Calendar } from 'lucide-react';
+import { AlertTriangle, Calendar, Clock, Star } from 'lucide-react';
 
 interface RequestListProps {
   requests: MaintenanceRequest[];
@@ -28,12 +28,15 @@ export function RequestList({ requests }: RequestListProps) {
         <TableHeader>
           <TableRow>
             <TableHead>Subject</TableHead>
+            <TableHead>Created By</TableHead>
+            <TableHead>Equipment / Work Center</TableHead>
+            <TableHead>Request Date</TableHead>
             <TableHead>Type</TableHead>
-            <TableHead>Equipment</TableHead>
-            <TableHead>Assigned To</TableHead>
             <TableHead>Team</TableHead>
+            <TableHead>Assigned To</TableHead>
             <TableHead>Scheduled</TableHead>
             <TableHead>Duration</TableHead>
+            <TableHead>Priority</TableHead>
             <TableHead>Status</TableHead>
           </TableRow>
         </TableHeader>
@@ -48,11 +51,21 @@ export function RequestList({ requests }: RequestListProps) {
             >
               <TableCell>
                 <div className="flex items-center gap-2">
-                  {request.priority === 'high' && (
-                    <AlertTriangle className="w-4 h-4 text-red-500 flex-shrink-0" />
-                  )}
                   <span className="font-medium text-foreground">{request.subject}</span>
                 </div>
+              </TableCell>
+              <TableCell>
+                {request.createdBy ? (
+                  <UserAvatar user={request.createdBy} size="sm" showName />
+                ) : (
+                  <span className="text-muted-foreground">-</span>
+                )}
+              </TableCell>
+              <TableCell className="text-muted-foreground">
+                {request.equipment?.name || request.workCenter?.name || '-'}
+              </TableCell>
+              <TableCell className="text-muted-foreground">
+                {new Date(request.createdAt).toLocaleDateString()}
               </TableCell>
               <TableCell>
                 <span
@@ -66,12 +79,11 @@ export function RequestList({ requests }: RequestListProps) {
                   {request.type === 'corrective' ? 'Corrective' : 'Preventive'}
                 </span>
               </TableCell>
-              <TableCell className="text-muted-foreground">{request.equipment.name}</TableCell>
-              <TableCell>
-                <UserAvatar user={request.assignedTechnician} size="sm" showName />
-              </TableCell>
               <TableCell className="text-muted-foreground">
                 {request.maintenanceTeam?.name || '-'}
+              </TableCell>
+              <TableCell>
+                <UserAvatar user={request.assignedTechnician} size="sm" showName />
               </TableCell>
               <TableCell>
                 {request.scheduledDate ? (
@@ -90,7 +102,25 @@ export function RequestList({ requests }: RequestListProps) {
                   '-'
                 )}
               </TableCell>
-              <TableCell className="text-muted-foreground">{request.duration}h</TableCell>
+              <TableCell className="text-muted-foreground">
+                {request.duration ? (
+                  <div className="flex items-center gap-1 text-sm">
+                    <Clock className="w-3 h-3" />
+                    {request.duration} hrs
+                  </div>
+                ) : (
+                  '-'
+                )}
+              </TableCell>
+              <TableCell>
+                {request.priority && (
+                  <div className="flex items-center gap-1">
+                    {[...Array(request.priority === 'high' ? 3 : request.priority === 'medium' ? 2 : 1)].map((_, i) => (
+                      <Star key={i} className="w-3 h-3 fill-current text-yellow-500" />
+                    ))}
+                  </div>
+                )}
+              </TableCell>
               <TableCell>
                 <StatusBadge status={request.status} />
               </TableCell>
@@ -98,6 +128,6 @@ export function RequestList({ requests }: RequestListProps) {
           ))}
         </TableBody>
       </Table>
-    </div>
+    </div >
   );
 }

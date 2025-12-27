@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils';
 type ViewMode = 'kanban' | 'list';
 
 export default function MaintenanceRequests() {
-  const [viewMode, setViewMode] = useState<ViewMode>('kanban');
+  const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [requests, setRequests] = useState<MaintenanceRequest[]>(maintenanceRequests);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
 

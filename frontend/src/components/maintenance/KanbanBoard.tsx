@@ -23,7 +23,7 @@ interface KanbanBoardProps {
 
 const columns: { id: MaintenanceStatus; title: string; color: string }[] = [
   { id: 'new', title: 'New', color: 'border-t-blue-500' },
-  { id: 'in-progress', title: 'In Progress', color: 'border-t-amber-500' },
+  { id: 'in_progress', title: 'In Progress', color: 'border-t-amber-500' },
   { id: 'repaired', title: 'Repaired', color: 'border-t-emerald-500' },
   { id: 'scrap', title: 'Scrap', color: 'border-t-red-500' },
 ];
@@ -99,18 +99,12 @@ export function KanbanBoard({ requests, onStatusChange }: KanbanBoardProps) {
                               'kanban-card',
                               snapshot.isDragging && 'shadow-lg rotate-2',
                               isOverdue(request.scheduledDate) &&
-                                request.status !== 'repaired' &&
-                                request.status !== 'scrap' &&
-                                'border-l-4 border-l-red-500'
+                              request.status !== 'repaired' &&
+                              request.status !== 'scrap' &&
+                              'border-l-4 border-l-red-500'
                             )}
                           >
-                            {/* Priority indicator */}
-                            {request.priority === 'high' && (
-                              <div className="flex items-center gap-1 text-xs text-red-600 mb-2">
-                                <AlertTriangle className="w-3 h-3" />
-                                High Priority
-                              </div>
-                            )}
+                            {/* Priority indicator - Removed from schema */}
 
                             {/* Subject */}
                             <h4 className="font-medium text-foreground text-sm mb-2 line-clamp-2">
@@ -151,8 +145,8 @@ export function KanbanBoard({ requests, onStatusChange }: KanbanBoardProps) {
                                   )}
                                 >
                                   {isOverdue(request.scheduledDate) &&
-                                  request.status !== 'repaired' &&
-                                  request.status !== 'scrap' ? (
+                                    request.status !== 'repaired' &&
+                                    request.status !== 'scrap' ? (
                                     <Clock className="w-3 h-3" />
                                   ) : (
                                     <Calendar className="w-3 h-3" />

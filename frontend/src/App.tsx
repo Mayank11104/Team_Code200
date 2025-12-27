@@ -7,8 +7,10 @@ import { AppLayout } from "./components/layout/AppLayout";
 import LandingPage from "./pages/Landingpage";
 import Dashboard from "./pages/Dashboard";
 import EquipmentList from "./pages/EquipmentList";
-import EquipmentDetail from "./pages/EquipmentDetail";
-import MaintenanceRequests from "./pages/MaintenanceRequests";
+import EquipmentDetail from '@/pages/EquipmentDetail';
+import WorkCenterList from '@/pages/WorkCenterList';
+import WorkCenterDetail from '@/pages/WorkCenterDetail';
+import MaintenanceRequests from '@/pages/MaintenanceRequests';
 import CalendarPage from "./pages/CalendarPage";
 import TeamsPage from "./pages/TeamsPage";
 import TeamDetail from "./pages/TeamDetail";
@@ -27,12 +29,14 @@ const App = () => (
         <Routes>
           {/* Public Routes - No AppLayout */}
           <Route path="/" element={<LandingPage />} />
-          
+
           {/* Protected Routes - With AppLayout */}
           <Route element={<AppLayout />}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/equipment" element={<EquipmentList />} />
             <Route path="/equipment/:id" element={<EquipmentDetail />} />
+            <Route path="/work" element={<WorkCenterList />} />
+            <Route path="/work/:id" element={<WorkCenterDetail />} />
             <Route path="/requests" element={<MaintenanceRequests />} />
             <Route path="/calendar" element={<CalendarPage />} />
             <Route path="/teams" element={<TeamsPage />} />
@@ -40,7 +44,7 @@ const App = () => (
             <Route path="/reports" element={<ReportsPage />} />
             <Route path="/profile" element={<ProfilePage />} />
           </Route>
-          
+
           {/* 404 Page */}
           <Route path="*" element={<NotFound />} />
         </Routes>

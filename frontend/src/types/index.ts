@@ -1,13 +1,14 @@
-export type MaintenanceStatus = 'new' | 'in-progress' | 'repaired' | 'scrap';
+export type MaintenanceStatus = 'new' | 'in_progress' | 'repaired' | 'scrap';
 export type RequestType = 'corrective' | 'preventive';
-export type EquipmentStatus = 'operational' | 'under-maintenance' | 'scrapped';
+// Equipment status is derived in the UI or simplified. SQL only has is_scrapped.
+// We can keep a UI helper type or remove it. Let's rely on isScrapped boolean in data.
 
 export interface User {
-  id: string;
+  id: string; // mapped from SERIAL (kept as string for frontend routing)
   name: string;
   email: string;
-  avatar?: string;
-  role: 'technician' | 'manager' | 'admin';
+  avatarUrl?: string; // mapped from avatar_url
+  role: 'technician' | 'manager' | 'admin' | 'employee';
 }
 
 export interface MaintenanceTeam {
@@ -15,7 +16,7 @@ export interface MaintenanceTeam {
   name: string;
   description: string;
   members: User[];
-  category: string;
+  // category removed as it's not in SQL MaintenanceTeam
 }
 
 export interface Equipment {
@@ -23,29 +24,42 @@ export interface Equipment {
   name: string;
   serialNumber: string;
   department: string;
-  assignedEmployee?: User;
+  defaultTechnician?: User; // mapped from default_technician_id
   maintenanceTeam?: MaintenanceTeam;
   location: string;
   warrantyExpiry: string;
   purchaseDate: string;
-  status: EquipmentStatus;
+  isScrapped: boolean; // mapped from is_scrapped
   category: string;
-  openRequestsCount: number;
+  openRequestsCount: number; // Derived/View-only
+}
+
+export interface WorkCenter {
+  id: string;
+  name: string;
+  department: string;
+  location: string;
+  capacity: number;
+  status: 'active' | 'inactive' | 'maintenance';
+  maintenanceTeam: MaintenanceTeam;
+  openRequestsCount?: number; // Derived
 }
 
 export interface MaintenanceRequest {
   id: string;
   subject: string;
-  type: RequestType;
-  equipment: Equipment;
+  type: RequestType; // mapped from request_type
+  equipment?: Equipment;
+  workCenter?: WorkCenter;
   status: MaintenanceStatus;
   assignedTechnician?: User;
-  maintenanceTeam?: MaintenanceTeam;
+  maintenanceTeam: MaintenanceTeam; // SQL implies NOT NULL for maintenance_team_id
   scheduledDate?: string;
-  duration: number; // in hours
+  duration?: string; // e.g. "02:00" or number hours
   description: string;
   createdAt: string;
-  priority: 'low' | 'medium' | 'high';
+  createdBy?: User; // Added to match diagram
+  priority?: 'low' | 'medium' | 'high';
 }
 
 export interface DashboardStats {

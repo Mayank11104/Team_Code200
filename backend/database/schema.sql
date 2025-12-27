@@ -55,16 +55,37 @@ CREATE TABLE Equipment (
     deleted_at TIMESTAMP
 );
 
+-- ---------- WORK CENTER ----------
+CREATE TABLE WorkCenter (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(150) NOT NULL,
+    department VARCHAR(100),
+    location VARCHAR(150),
+    capacity INT,
+    status VARCHAR(20) DEFAULT 'active' CHECK (status IN ('active', 'inactive', 'maintenance')),
+    maintenance_team_id INT REFERENCES MaintenanceTeam(id),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP,
+    deleted_at TIMESTAMP
+);
+
 -- ---------- MAINTENANCE REQUEST ----------
 CREATE TABLE MaintenanceRequest (
     id SERIAL PRIMARY KEY,
     subject VARCHAR(200) NOT NULL,
     description TEXT,
     request_type VARCHAR(20) NOT NULL CHECK (request_type IN ('corrective', 'preventive')),
+    priority VARCHAR(10) CHECK (priority IN ('low', 'medium', 'high')),
+    duration INT, -- in hours/minutes? explicit
     status VARCHAR(20) NOT NULL CHECK (status IN ('new', 'in_progress', 'repaired', 'scrap')),
-    equipment_id INT NOT NULL REFERENCES Equipment(id),
+    equipment_id INT REFERENCES Equipment(id),
+    work_center_id INT REFERENCES WorkCenter(id),
     maintenance_team_id INT NOT NULL REFERENCES MaintenanceTeam(id),
     assigned_technician_id INT REFERENCES "User"(id),
+    CONSTRAINT chk_maintenance_target CHECK (
+        (equipment_id IS NOT NULL AND work_center_id IS NULL) OR
+        (equipment_id IS NULL AND work_center_id IS NOT NULL)
+    ),
     scheduled_date DATE,
     started_at TIMESTAMP,
     completed_at TIMESTAMP,

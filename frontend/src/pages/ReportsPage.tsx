@@ -26,10 +26,9 @@ export default function ReportsPage() {
     return acc;
   }, [] as { category: string; count: number }[]);
 
-  const requestsByPriority = [
-    { priority: 'Low', count: maintenanceRequests.filter((r) => r.priority === 'low').length },
-    { priority: 'Medium', count: maintenanceRequests.filter((r) => r.priority === 'medium').length },
-    { priority: 'High', count: maintenanceRequests.filter((r) => r.priority === 'high').length },
+  const requestsByType = [
+    { type: 'Corrective', count: maintenanceRequests.filter((r) => r.type === 'corrective').length },
+    { type: 'Preventive', count: maintenanceRequests.filter((r) => r.type === 'preventive').length },
   ];
 
   return (
@@ -185,14 +184,14 @@ export default function ReportsPage() {
           </div>
         </div>
 
-        {/* Requests by Priority */}
+        {/* Requests by Type */}
         <div className="card-enterprise p-6">
-          <h3 className="text-lg font-semibold text-foreground mb-4">Requests by Priority</h3>
+          <h3 className="text-lg font-semibold text-foreground mb-4">Requests by Type</h3>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={requestsByPriority}>
+              <BarChart data={requestsByType}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis dataKey="priority" />
+                <XAxis dataKey="type" />
                 <YAxis />
                 <Tooltip
                   contentStyle={{
@@ -202,9 +201,8 @@ export default function ReportsPage() {
                   }}
                 />
                 <Bar dataKey="count" radius={[4, 4, 0, 0]}>
-                  <Cell fill="#10b981" />
-                  <Cell fill="#f59e0b" />
                   <Cell fill="#ef4444" />
+                  <Cell fill="#2563eb" />
                 </Bar>
               </BarChart>
             </ResponsiveContainer>

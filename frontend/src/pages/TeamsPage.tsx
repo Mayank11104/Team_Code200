@@ -47,7 +47,7 @@ export default function TeamsPage() {
                     <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">
                       {team.name}
                     </h3>
-                    <p className="text-sm text-muted-foreground">{team.category}</p>
+                    <p className="text-sm text-muted-foreground">{team.description}</p>
                   </div>
                 </div>
                 <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
