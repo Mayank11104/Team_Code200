@@ -26,11 +26,10 @@ const SignUpModal: React.FC<SignUpModalProps> = ({ isOpen, onClose, onSwitchToLo
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({ confirmPassword: '', general: '' });
-    
-    // Validate passwords match
+
     if (formData.password !== formData.confirmPassword) {
       setErrors({
         ...errors,
@@ -39,30 +38,48 @@ const SignUpModal: React.FC<SignUpModalProps> = ({ isOpen, onClose, onSwitchToLo
       return;
     }
 
-    // Sign up - role automatically set to 'employee'
-    const result = signUp({
-      name: formData.name,
-      email: formData.email,
-      password: formData.password,
-    });
-
-    if (result.success) {
-      // Auto login after signup
-      localStorage.setItem('currentUser', JSON.stringify({
-        id: result.user?.id,
-        name: result.user?.name,
-        email: result.user?.email,
-        role: result.user?.role // Will be 'employee'
-      }));
-      
-      // Navigate to dashboard
-      navigate('/dashboard');
-      onClose();
-    } else {
-      setErrors({
-        ...errors,
-        general: result.error || 'Sign up failed',
+    try {
+      const response = await fetch('http://127.0.0.1:8000/auth/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+        }),
       });
+
+      if (response.ok) {
+        // Auto login after signup
+        const params = new URLSearchParams();
+        params.append('username', formData.email);
+        params.append('password', formData.password);
+        params.append('role', 'employee'); // Role is fixed to employee
+
+        const loginResponse = await fetch('http://127.0.0.1:8000/auth/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: params,
+        });
+
+        if (loginResponse.ok) {
+          console.log('Signup and login successful');
+          navigate('/dashboard');
+          onClose();
+        } else {
+          setErrors({ ...errors, general: 'Auto-login failed after signup.' });
+        }
+      } else {
+        const errorData = await response.json();
+        setErrors({ ...errors, general: errorData.detail || 'Sign up failed' });
+      }
+    } catch (error) {
+      console.error('An error occurred during sign up:', error);
+      setErrors({ ...errors, general: 'Could not connect to the server.' });
     }
   };
 

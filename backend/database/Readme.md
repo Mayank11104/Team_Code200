@@ -12,10 +12,12 @@ createdb gearguard_db
 ```
 2. Apply schema
 ```bash
-psql gearguard_db < database/schema.sql
+psql -U postgres -d gearguard_db -f database/schema.sql
+
 ```
 
 3. Load seed data
 ```bash
-psql gearguard_db < database/seed.sql
+psql -U postgres -d gearguard_db -f database/seed.sql
+
 ```
