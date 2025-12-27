@@ -18,7 +18,7 @@ interface TopBarProps {
 }
 
 const navItems = [
-  { path: '/', label: 'Dashboard', icon: LayoutDashboard },
+  { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { path: '/equipment', label: 'Equipment', icon: Cog },
   { path: '/requests', label: 'Maintenance Requests', icon: Wrench },
   { path: '/calendar', label: 'Calendar', icon: Calendar },
