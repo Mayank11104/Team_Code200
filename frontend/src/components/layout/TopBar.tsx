@@ -18,10 +18,10 @@ interface TopBarProps {
 }
 
 const navItems = [
-  { label: 'Dashboard', path: '/', icon: LayoutDashboard },
+  { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
+  { label: 'Requests', path: '/requests', icon: FileText },
   { label: 'Equipment', path: '/equipment', icon: MonitorPlay },
   { label: 'Work Centers', path: '/work', icon: Factory },
-  { label: 'Requests', path: '/requests', icon: FileText },
   { label: 'Calendar', path: '/calendar', icon: Calendar },
   { path: '/teams', label: 'Teams', icon: Users },
   { path: '/reports', label: 'Reports', icon: FileText },
