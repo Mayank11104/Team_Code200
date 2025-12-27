@@ -57,3 +57,24 @@ export interface DashboardStats {
   requestsByStatus: { status: string; count: number }[];
   requestsByTeam: { team: string; count: number }[];
 }
+
+// ✅ ADD THESE NEW TYPES FOR LANDING PAGE
+export interface Feature {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+}
+
+export interface Stat {
+  icon: React.ReactNode;
+  value: string;
+  label: string;
+  bgColor: string;
+  iconColor: string;
+}
+
+export interface WorkflowStep {
+  step: string;
+  title: string;
+  desc: string;
+}

@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AppLayout } from "./components/layout/AppLayout";
+import LandingPage from "./pages/Landingpage";
 import Dashboard from "./pages/Dashboard";
 import EquipmentList from "./pages/EquipmentList";
 import EquipmentDetail from "./pages/EquipmentDetail";
@@ -24,8 +25,12 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
+          {/* Public Routes - No AppLayout */}
+          <Route path="/" element={<LandingPage />} />
+          
+          {/* Protected Routes - With AppLayout */}
           <Route element={<AppLayout />}>
-            <Route path="/" element={<Dashboard />} />
+            <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/equipment" element={<EquipmentList />} />
             <Route path="/equipment/:id" element={<EquipmentDetail />} />
             <Route path="/requests" element={<MaintenanceRequests />} />
@@ -35,6 +40,8 @@ const App = () => (
             <Route path="/reports" element={<ReportsPage />} />
             <Route path="/profile" element={<ProfilePage />} />
           </Route>
+          
+          {/* 404 Page */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
