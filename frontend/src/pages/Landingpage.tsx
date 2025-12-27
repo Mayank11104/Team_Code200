@@ -157,12 +157,7 @@ const LandingPage: React.FC = () => {
                   Get Started Free
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </button>
-                <button 
-                  onClick={() => navigate('/dashboard')}
-                  className="px-8 py-4 bg-white text-[#090A0C] text-lg font-semibold rounded-lg border-2 border-[#090A0C] hover:bg-gray-100 transition-all shadow-md"
-                >
-                  View Demo
-                </button>
+                
               </div>
             </div>
 
