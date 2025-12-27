@@ -1,5 +1,5 @@
-import { Bell, Search, User } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Bell, Search, User, LayoutDashboard, Cog, Wrench, Calendar, Users, FileText } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
@@ -11,16 +11,54 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { cn } from '@/lib/utils';
 
 interface TopBarProps {
   title?: string;
 }
 
+const navItems = [
+  { path: '/', label: 'Dashboard', icon: LayoutDashboard },
+  { path: '/equipment', label: 'Equipment', icon: Cog },
+  { path: '/requests', label: 'Maintenance Requests', icon: Wrench },
+  { path: '/calendar', label: 'Calendar', icon: Calendar },
+  { path: '/teams', label: 'Teams', icon: Users },
+  { path: '/reports', label: 'Reports', icon: FileText },
+];
+
 export function TopBar({ title }: TopBarProps) {
+  const location = useLocation();
+
   return (
-    <header className="h-16 bg-card border-b border-border px-6 flex items-center justify-between">
-      <div className="flex items-center gap-4">
-        {title && <h1 className="text-xl font-semibold text-foreground">{title}</h1>}
+    <header className="h-16 bg-card border-b border-border px-6 flex items-center justify-between gap-4">
+      <div className="flex items-center gap-8">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
+            <Cog className="w-5 h-5 text-primary-foreground" />
+          </div>
+          <span className="font-semibold text-lg text-foreground hidden md:block">GearGuard</span>
+        </div>
+
+        <nav className="hidden lg:flex items-center gap-1">
+          {navItems.map((item) => {
+            const isActive = location.pathname === item.path;
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={cn(
+                  'flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors',
+                  isActive
+                    ? 'bg-primary/10 text-primary'
+                    : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                )}
+              >
+                <item.icon className="w-4 h-4" />
+                {item.label}
+              </Link>
+            );
+          })}
+        </nav>
       </div>
 
       <div className="flex items-center gap-4">
