@@ -152,3 +152,7 @@ Seed data includes:
 This allows immediate testing and demo without manual setup.
 
 ---
+
+## ER Diagram
+
+![ER Diagram](ER_Diagram.png)
