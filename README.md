@@ -159,5 +159,7 @@ This allows immediate testing and demo without manual setup.
 
 ## UI
 
-![Kanban WorkFLow](KanbanWorkflow.png)
-
+![Kanban WorkFLow](KanbanWorkflow.jpeg)
+![Equiment page](Equipment_UI.jpeg)
+![Work Center Page](Work_Center.jpeg)
+![Calender Page](calender.jpeg)
