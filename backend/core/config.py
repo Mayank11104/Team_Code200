@@ -4,7 +4,7 @@ from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
     # --- Database Settings ---
-    DATABASE_URL: str = "postgresql://postgres:123@localhost/gearguard"
+    DATABASE_URL: str = "postgresql://postgres:Ritesh%40123@localhost/gearguard"
 
     # --- JWT Settings ---
     SECRET_KEY: str = os.environ.get("SECRET_KEY", "a_very_secret_key")
