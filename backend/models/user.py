@@ -1,9 +1,30 @@
 from typing import Optional
 from sqlalchemy import Column, Integer, String, DateTime
+from pydantic import BaseModel
 
 from ..core.database import Base
 
-class User(Base):
+from pydantic import BaseModel
+
+class UserBase(BaseModel):
+    email: str
+    name: str
+
+class UserCreate(UserBase):
+    password: str
+
+class User(UserBase):
+    id: int
+    role: str
+    avatar_url: Optional[str] = None
+
+    class Config:
+        orm_mode = True
+
+class UserInDB(User):
+    password_hash: str
+
+class UserDB(Base):
     __tablename__ = "User"
 
     id = Column(Integer, primary_key=True, index=True)

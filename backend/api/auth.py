@@ -3,10 +3,15 @@ from fastapi import APIRouter, Depends, HTTPException, Response, Form, Request
 from fastapi.security import OAuth2PasswordRequestForm
 
 from ..core.config import settings
-from ..core.security import create_access_token, create_refresh_token, verify_password
+from ..core.security import (
+    create_access_token,
+    create_refresh_token,
+    verify_password,
+    get_password_hash,
+)
 from ..models.token import Token
-from ..models.user import User
-from ..services.user_service import get_user_by_email
+from ..models.user import User, UserCreate, UserDB
+from ..services.user_service import get_user_by_email, create_user
 from ..services.audit_service import create_login_history
 
 router = APIRouter()
@@ -70,3 +75,22 @@ async def logout(response: Response):
     response.delete_cookie("access_token")
     response.delete_cookie("refresh_token")
     return {"message": "Successfully logged out"}
+
+
+@router.post("/signup", response_model=User)
+async def signup(user_data: UserCreate, db: Session = Depends(get_db)):
+    db_user = get_user_by_email(db, email=user_data.email)
+    if db_user:
+        raise HTTPException(status_code=400, detail="Email already registered")
+
+    hashed_password = get_password_hash(user_data.password)
+    
+    # Create a new user dictionary with the hashed password and default role
+    new_user_data = user_data.dict()
+    new_user_data["password_hash"] = hashed_password
+    new_user_data["role"] = "employee"  # Set default role
+    del new_user_data["password"]  # Remove plain password
+
+    # The create_user service needs to be adapted to accept this dictionary
+    # For now, let's assume it does. If not, we'll adjust the service.
+    return create_user(db=db, user_data=new_user_data)

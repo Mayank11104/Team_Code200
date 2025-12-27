@@ -3,11 +3,20 @@ from fastapi import Depends, FastAPI
 
 from .api import auth
 from .core.security import require_role
-
+from fastapi.middleware.cors import CORSMiddleware
 app = FastAPI(
     title="GearGuard API",
     description="Backend services for the GearGuard Maintenance Management System.",
     version="0.1.0",
+)
+
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,   # REQUIRED for cookies
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 app.include_router(auth.router, prefix="/auth", tags=["Authentication"])
