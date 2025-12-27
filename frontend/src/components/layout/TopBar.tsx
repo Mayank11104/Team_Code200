@@ -80,7 +80,7 @@ export function TopBar({ title }: TopBarProps) {
             <Button variant="ghost" className="gap-2 pl-2 pr-3">
               <Avatar className="w-8 h-8">
                 <AvatarFallback className="bg-primary text-primary-foreground text-sm">
-                  DM
+                  AD
                 </AvatarFallback>
               </Avatar>
               <span className="hidden md:inline text-sm font-medium">Admin</span>
