@@ -1,30 +1,38 @@
 import { useState } from 'react';
-import { Plus, List, LayoutGrid } from 'lucide-react';
+import { Plus, List, LayoutGrid, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { maintenanceRequests, equipment, teams, users } from '@/data/mockData';
-import { MaintenanceRequest, MaintenanceStatus } from '@/types';
 import { KanbanBoard } from '@/components/maintenance/KanbanBoard';
 import { RequestList } from '@/components/maintenance/RequestList';
 import { CreateRequestDialog } from '@/components/maintenance/CreateRequestDialog';
 import { cn } from '@/lib/utils';
+import { useMaintenanceRequests } from '@/api/hooks/useMaintenance';
 
 type ViewMode = 'kanban' | 'list';
 
 export default function MaintenanceRequests() {
   const [viewMode, setViewMode] = useState<ViewMode>('list');
-  const [requests, setRequests] = useState<MaintenanceRequest[]>(maintenanceRequests);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
 
-  const handleStatusChange = (requestId: string, newStatus: MaintenanceStatus) => {
-    setRequests((prev) =>
-      prev.map((r) => (r.id === requestId ? { ...r, status: newStatus } : r))
-    );
-  };
+  // Fetch maintenance requests from API
+  const { data, isLoading, error } = useMaintenanceRequests();
 
-  const handleCreateRequest = (newRequest: MaintenanceRequest) => {
-    setRequests((prev) => [newRequest, ...prev]);
-    setCreateDialogOpen(false);
-  };
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="card-enterprise p-6 text-center">
+        <p className="text-red-600">Error loading requests: {error.message}</p>
+      </div>
+    );
+  }
+
+  const requests = data?.requests || [];
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -32,7 +40,9 @@ export default function MaintenanceRequests() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Maintenance Requests</h1>
-          <p className="text-muted-foreground mt-1">Track and manage all maintenance work orders</p>
+          <p className="text-muted-foreground mt-1">
+            Track and manage all maintenance work orders ({requests.length} total)
+          </p>
         </div>
         <div className="flex items-center gap-3">
           {/* View Toggle */}
@@ -69,7 +79,7 @@ export default function MaintenanceRequests() {
 
       {/* Content */}
       {viewMode === 'kanban' ? (
-        <KanbanBoard requests={requests} onStatusChange={handleStatusChange} />
+        <KanbanBoard requests={requests} />
       ) : (
         <RequestList requests={requests} />
       )}
@@ -78,11 +88,8 @@ export default function MaintenanceRequests() {
       <CreateRequestDialog
         open={createDialogOpen}
         onOpenChange={setCreateDialogOpen}
-        onSubmit={handleCreateRequest}
-        equipment={equipment}
-        teams={teams}
-        users={users}
       />
     </div>
   );
 }
+

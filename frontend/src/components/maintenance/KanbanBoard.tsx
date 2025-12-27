@@ -1,10 +1,11 @@
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
-import { MaintenanceRequest, MaintenanceStatus } from '@/types';
 import { StatusBadge } from '@/components/common/StatusBadge';
 import { UserAvatar } from '@/components/common/UserAvatar';
 import { Calendar, AlertTriangle, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
+import { useUpdateRequestStatus } from '@/api/hooks/useMaintenance';
+import { useToast } from '@/components/ui/use-toast';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -17,45 +18,75 @@ import {
 } from '@/components/ui/alert-dialog';
 
 interface KanbanBoardProps {
-  requests: MaintenanceRequest[];
-  onStatusChange: (requestId: string, newStatus: MaintenanceStatus) => void;
+  requests: any[];
 }
 
-const columns: { id: MaintenanceStatus; title: string; color: string }[] = [
+const columns = [
   { id: 'new', title: 'New', color: 'border-t-blue-500' },
   { id: 'in_progress', title: 'In Progress', color: 'border-t-amber-500' },
   { id: 'repaired', title: 'Repaired', color: 'border-t-emerald-500' },
   { id: 'scrap', title: 'Scrap', color: 'border-t-red-500' },
 ];
 
-export function KanbanBoard({ requests, onStatusChange }: KanbanBoardProps) {
-  const [scrapConfirm, setScrapConfirm] = useState<{ open: boolean; requestId: string | null }>({
+export function KanbanBoard({ requests }: KanbanBoardProps) {
+  const { toast } = useToast();
+  const updateStatusMutation = useUpdateRequestStatus();
+
+  const [scrapConfirm, setScrapConfirm] = useState<{ open: boolean; requestId: number | null }>({
     open: false,
     requestId: null,
   });
 
-  const getRequestsByStatus = (status: MaintenanceStatus) => {
-    return requests.filter((r) => r.status === status);
+  const getRequestsByStatus = (status: string) => {
+    return requests.filter((r: any) => r.status === status);
   };
 
   const handleDragEnd = (result: DropResult) => {
     if (!result.destination) return;
 
     const { draggableId, destination } = result;
-    const newStatus = destination.droppableId as MaintenanceStatus;
+    const newStatus = destination.droppableId;
 
     // Check if moving to scrap
     if (newStatus === 'scrap') {
-      setScrapConfirm({ open: true, requestId: draggableId });
+      setScrapConfirm({ open: true, requestId: parseInt(draggableId) });
       return;
     }
 
-    onStatusChange(draggableId, newStatus);
+    // Update status via API
+    updateStatusMutation.mutate(
+      { id: parseInt(draggableId), status: newStatus },
+      {
+        onSuccess: () => {
+          toast({
+            title: 'Status Updated',
+            description: `Request moved to ${newStatus.replace('_', ' ')}`,
+          });
+        },
+        onError: (error: any) => {
+          toast({
+            title: 'Error',
+            description: error.response?.data?.detail || 'Failed to update status',
+            variant: 'destructive',
+          });
+        },
+      }
+    );
   };
 
   const confirmScrap = () => {
     if (scrapConfirm.requestId) {
-      onStatusChange(scrapConfirm.requestId, 'scrap');
+      updateStatusMutation.mutate(
+        { id: scrapConfirm.requestId, status: 'scrap' },
+        {
+          onSuccess: () => {
+            toast({
+              title: 'Status Updated',
+              description: 'Request marked as scrapped',
+            });
+          },
+        }
+      );
     }
     setScrapConfirm({ open: false, requestId: null });
   };
@@ -88,8 +119,8 @@ export function KanbanBoard({ requests, onStatusChange }: KanbanBoardProps) {
                       snapshot.isDraggingOver && 'bg-primary/5'
                     )}
                   >
-                    {getRequestsByStatus(column.id).map((request, index) => (
-                      <Draggable key={request.id} draggableId={request.id} index={index}>
+                    {getRequestsByStatus(column.id).map((request: any, index: number) => (
+                      <Draggable key={request.id} draggableId={request.id.toString()} index={index}>
                         {(provided, snapshot) => (
                           <div
                             ref={provided.innerRef}
@@ -104,8 +135,6 @@ export function KanbanBoard({ requests, onStatusChange }: KanbanBoardProps) {
                               'border-l-4 border-l-red-500'
                             )}
                           >
-                            {/* Priority indicator - Removed from schema */}
-
                             {/* Subject */}
                             <h4 className="font-medium text-foreground text-sm mb-2 line-clamp-2">
                               {request.subject}
@@ -113,7 +142,7 @@ export function KanbanBoard({ requests, onStatusChange }: KanbanBoardProps) {
 
                             {/* Equipment */}
                             <p className="text-xs text-muted-foreground mb-3">
-                              {request.equipment.name}
+                              {request.equipmentName || 'Unknown Equipment'}
                             </p>
 
                             {/* Type badge */}
@@ -121,18 +150,32 @@ export function KanbanBoard({ requests, onStatusChange }: KanbanBoardProps) {
                               <span
                                 className={cn(
                                   'inline-flex items-center px-2 py-0.5 rounded text-xs font-medium',
-                                  request.type === 'corrective'
+                                  request.requestType === 'corrective'
                                     ? 'bg-red-100 text-red-700'
                                     : 'bg-blue-100 text-blue-700'
                                 )}
                               >
-                                {request.type === 'corrective' ? 'Corrective' : 'Preventive'}
+                                {request.requestType === 'corrective' ? 'Corrective' : 'Preventive'}
                               </span>
                             </div>
 
                             {/* Footer */}
                             <div className="flex items-center justify-between pt-3 border-t border-border">
-                              <UserAvatar user={request.assignedTechnician} size="sm" />
+                              {request.technicianName ? (
+                                <div className="flex items-center gap-2">
+                                  <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center">
+                                    <span className="text-xs font-medium text-primary">
+                                      {request.technicianName.charAt(0)}
+                                    </span>
+                                  </div>
+                                  <span className="text-xs text-muted-foreground truncate max-w-[100px]">
+                                    {request.technicianName}
+                                  </span>
+                                </div>
+                              ) : (
+                                <span className="text-xs text-muted-foreground">Unassigned</span>
+                              )}
+
                               {request.scheduledDate && (
                                 <div
                                   className={cn(

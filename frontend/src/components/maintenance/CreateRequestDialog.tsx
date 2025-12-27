@@ -17,35 +17,38 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Equipment, MaintenanceTeam, User, MaintenanceRequest, RequestType } from '@/types';
+import { useToast } from '@/components/ui/use-toast';
+import { Loader2 } from 'lucide-react';
+import { useEquipmentList } from '@/api/hooks/useEquipment';
+import { useTeamsList } from '@/api/hooks/useTeams';
+import { useCreateRequest } from '@/api/hooks/useMaintenance';
 
 interface CreateRequestDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (request: MaintenanceRequest) => void;
-  equipment: Equipment[];
-  teams: MaintenanceTeam[];
-  users: User[];
 }
 
-export function CreateRequestDialog({
-  open,
-  onOpenChange,
-  onSubmit,
-  equipment,
-  teams,
-  users,
-}: CreateRequestDialogProps) {
-  // Mock Work Centers (ideally passed as props)
-  const workCenters: import('@/types').WorkCenter[] = [ // Minimal cast to avoid full mock in dialog
-    { id: '1', name: 'Assembly Line A', department: 'Production', location: 'Building A' } as any,
-    { id: '2', name: 'Packaging Zone', department: 'Warehouse', location: 'Warehouse B' } as any,
+export function CreateRequestDialog({ open, onOpenChange }: CreateRequestDialogProps) {
+  const { toast } = useToast();
+
+  // Fetch equipment and teams from API
+  const { data: equipmentData } = useEquipmentList();
+  const { data: teamsData } = useTeamsList();
+  const createRequestMutation = useCreateRequest();
+
+  const equipment = equipmentData?.equipment || [];
+  const teams = teamsData?.teams || [];
+
+  // Mock Work Centers (not in database yet)
+  const workCenters = [
+    { id: '1', name: 'Assembly Line A', department: 'Production', location: 'Building A' },
+    { id: '2', name: 'Packaging Zone', department: 'Warehouse', location: 'Warehouse B' },
   ];
 
   const [formData, setFormData] = useState({
     subject: '',
     maintenanceFor: 'equipment' as 'equipment' | 'workCenter',
-    type: 'corrective' as RequestType,
+    type: 'corrective' as 'corrective' | 'preventive',
     equipmentId: '',
     workCenterId: '',
     technicianId: '',
@@ -59,59 +62,71 @@ export function CreateRequestDialog({
   // Auto-fill when equipment is selected
   useEffect(() => {
     if (formData.maintenanceFor === 'equipment' && formData.equipmentId) {
-      const selectedEquipment = equipment.find((e) => e.id === formData.equipmentId);
-      if (selectedEquipment) {
+      const selectedEquipment = equipment.find((e: any) => e.id === parseInt(formData.equipmentId));
+      if (selectedEquipment?.maintenanceTeamId) {
         setFormData((prev) => ({
           ...prev,
-          teamId: selectedEquipment.maintenanceTeam?.id || '',
-          technicianId: selectedEquipment.defaultTechnician?.id || '',
+          teamId: selectedEquipment.maintenanceTeamId.toString(),
+          technicianId: selectedEquipment.defaultTechnicianId?.toString() || '',
         }));
       }
     }
   }, [formData.equipmentId, formData.maintenanceFor, equipment]);
 
-  const selectedTeam = teams.find((t) => t.id === formData.teamId)!; // Safe assertion if form logic is correct, but ideally checks needed
-  const availableTechnicians = selectedTeam?.members || users.filter((u) => u.role === 'technician');
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const selectedEquipment = formData.maintenanceFor === 'equipment' ? equipment.find((e) => e.id === formData.equipmentId) : undefined;
-    const selectedWorkCenter = formData.maintenanceFor === 'workCenter' ? workCenters.find((w) => w.id === formData.workCenterId) : undefined;
-    const selectedTechnician = users.find((u) => u.id === formData.technicianId);
-    const selectedTeamData = teams.find((t) => t.id === formData.teamId)!;
+    // Only submit equipment-based requests for now (work centers not in backend yet)
+    if (formData.maintenanceFor === 'workCenter') {
+      toast({
+        title: 'Not Supported',
+        description: 'Work Center maintenance is not yet implemented in the backend',
+        variant: 'destructive',
+      });
+      return;
+    }
 
-    const newRequest: MaintenanceRequest = {
-      id: `${Date.now()}`,
+    const requestData = {
       subject: formData.subject,
-      type: formData.type,
-      equipment: selectedEquipment,
-      workCenter: selectedWorkCenter,
-      status: 'new',
-      assignedTechnician: selectedTechnician,
-      maintenanceTeam: selectedTeamData,
+      description: formData.description || undefined,
+      requestType: formData.type,
+      equipmentId: parseInt(formData.equipmentId),
+      maintenanceTeamId: parseInt(formData.teamId),
+      assignedTechnicianId: formData.technicianId ? parseInt(formData.technicianId) : undefined,
       scheduledDate: formData.scheduledDate || undefined,
-      duration: formData.duration,
-      description: formData.description,
-      createdAt: new Date().toISOString().split('T')[0],
-      priority: formData.priority,
-      createdBy: users[0], // Mocking current user
     };
 
-    onSubmit(newRequest);
-    setFormData({
-      subject: '',
-      maintenanceFor: 'equipment',
-      type: 'corrective',
-      equipmentId: '',
-      workCenterId: '',
-      technicianId: '',
-      teamId: '',
-      scheduledDate: '',
-      duration: '2',
-      description: '',
-      priority: 'medium',
-    });
+    try {
+      await createRequestMutation.mutateAsync(requestData as any);
+
+      toast({
+        title: 'Success!',
+        description: 'Maintenance request created successfully',
+      });
+
+      // Reset form
+      setFormData({
+        subject: '',
+        maintenanceFor: 'equipment',
+        type: 'corrective',
+        equipmentId: '',
+        workCenterId: '',
+        technicianId: '',
+        teamId: '',
+        scheduledDate: '',
+        duration: '2',
+        description: '',
+        priority: 'medium',
+      });
+
+      onOpenChange(false);
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.response?.data?.detail || 'Failed to create request',
+        variant: 'destructive',
+      });
+    }
   };
 
   return (
@@ -190,10 +205,10 @@ export function CreateRequestDialog({
                   </SelectTrigger>
                   <SelectContent>
                     {equipment
-                      .filter((e) => !e.isScrapped)
-                      .map((eq) => (
-                        <SelectItem key={eq.id} value={eq.id}>
-                          {eq.name}
+                      .filter((e: any) => !e.isScrapped)
+                      .map((eq: any) => (
+                        <SelectItem key={eq.id} value={eq.id.toString()}>
+                          {eq.name} ({eq.serialNumber})
                         </SelectItem>
                       ))}
                   </SelectContent>
@@ -223,7 +238,7 @@ export function CreateRequestDialog({
             <Label htmlFor="type">Type</Label>
             <Select
               value={formData.type}
-              onValueChange={(v) => setFormData({ ...formData, type: v as RequestType })}
+              onValueChange={(v) => setFormData({ ...formData, type: v as 'corrective' | 'preventive' })}
             >
               <SelectTrigger>
                 <SelectValue />
@@ -267,8 +282,8 @@ export function CreateRequestDialog({
                 <SelectValue placeholder="Select Team" />
               </SelectTrigger>
               <SelectContent>
-                {teams.map((team) => (
-                  <SelectItem key={team.id} value={team.id}>
+                {teams.map((team: any) => (
+                  <SelectItem key={team.id} value={team.id.toString()}>
                     {team.name}
                   </SelectItem>
                 ))}
@@ -277,22 +292,17 @@ export function CreateRequestDialog({
           </div>
 
           <div className="col-span-12 md:col-span-6 space-y-1.5">
-            <Label htmlFor="technician">Technician</Label>
-            <Select
+            <Label htmlFor="technician">Technician (Optional)</Label>
+            <Input
+              id="technician"
+              type="number"
               value={formData.technicianId}
-              onValueChange={(v) => setFormData({ ...formData, technicianId: v })}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select Technician" />
-              </SelectTrigger>
-              <SelectContent>
-                {availableTechnicians.map((user) => (
-                  <SelectItem key={user.id} value={user.id}>
-                    {user.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              onChange={(e) => setFormData({ ...formData, technicianId: e.target.value })}
+              placeholder="Enter technician ID (3, 4, 5, or 6)"
+            />
+            <p className="text-xs text-muted-foreground">
+              3=John, 4=Alice, 5=Emma, 6=Lisa
+            </p>
           </div>
 
           {/* Row 5: Description */}
@@ -308,10 +318,26 @@ export function CreateRequestDialog({
           </div>
 
           <DialogFooter className="col-span-12 pt-2">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              disabled={createRequestMutation.isPending}
+            >
               Cancel
             </Button>
-            <Button type="submit" disabled={!formData.subject || (!formData.equipmentId && !formData.workCenterId)}>
+            <Button
+              type="submit"
+              disabled={
+                !formData.subject ||
+                (!formData.equipmentId && !formData.workCenterId) ||
+                (formData.maintenanceFor === 'equipment' && !formData.teamId) ||
+                createRequestMutation.isPending
+              }
+            >
+              {createRequestMutation.isPending && (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              )}
               Create Request
             </Button>
           </DialogFooter>

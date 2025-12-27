@@ -14,7 +14,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onSwitchToSign
     role: 'technician' as 'admin' | 'manager' | 'technician' | 'employee',
     username: '',
     password: '',
-  }); 
+  });
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -30,11 +30,12 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onSwitchToSign
     params.append('role', formData.role);
 
     try {
-      const response = await fetch('http://127.0.0.1:8000/auth/login', {
+      const response = await fetch('http://localhost:8000/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
+        credentials: 'include',
         body: params,
       });
 
@@ -65,11 +66,11 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onSwitchToSign
   };
 
   return (
-    <div 
+    <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fadeIn"
       onClick={onClose}
     >
-      <div 
+      <div
         className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 animate-slideUp"
         onClick={(e) => e.stopPropagation()}
       >
@@ -160,11 +161,11 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onSwitchToSign
           {/* Remember Me & Forgot Password */}
           <div className="flex items-center justify-between">
             <label className="flex items-center cursor-pointer group">
-              <input 
-                type="checkbox" 
+              <input
+                type="checkbox"
                 checked={rememberMe}
                 onChange={(e) => setRememberMe(e.target.checked)}
-                className="w-4 h-4 border-2 border-gray-300 rounded cursor-pointer accent-[#090A0C]" 
+                className="w-4 h-4 border-2 border-gray-300 rounded cursor-pointer accent-[#090A0C]"
               />
               <span className="ml-2 text-sm text-[#090A0C] opacity-80 group-hover:opacity-100 transition-opacity">
                 Remember me

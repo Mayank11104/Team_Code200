@@ -37,16 +37,16 @@ async def login_for_access_token(request: Request, response: Response, db: Sessi
             detail="Incorrect email or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-
+    print("hello")
     # The role check is implicitly handled by the frontend sending the role,
     # but the authoritative role is taken from the database.
     # We can add an explicit check if desired:
-    if role != user.role:
-        raise HTTPException(
-            status_code=401,
-            detail="Role mismatch",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+    # if role != user.role:
+    #     raise HTTPException(
+    #         status_code=401,
+    #         detail="Role mismatch",
+    #         headers={"WWW-Authenticate": "Bearer"},
+    #     )
 
     access_token = create_access_token(data={"sub": str(user.id), "role": user.role})
     refresh_token = create_refresh_token(data={"sub": str(user.id)})

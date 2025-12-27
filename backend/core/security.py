@@ -1,4 +1,4 @@
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, status, Request
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from passlib.context import CryptContext
@@ -12,7 +12,7 @@ from ..services import user_service
 
 pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login", auto_error=False)
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     return pwd_context.verify(plain_password, hashed_password)
@@ -40,28 +40,47 @@ def create_refresh_token(data: dict, expires_delta: timedelta | None = None):
     encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
     return encoded_jwt
 
-def get_current_user(db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)) -> user.User:
+def get_current_user(request: Request, db: Session = Depends(get_db)) -> user.User:
+    """Get current user from cookie token"""
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
+    
+    # Try to get token from cookie
+    token_str = request.cookies.get("access_token")
+    if not token_str:
+        raise credentials_exception
+    
+    # Remove "Bearer " prefix if present
+    if token_str.startswith("Bearer "):
+        token_str = token_str[7:]
+    
     try:
-        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        payload = jwt.decode(token_str, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
         user_id: int = int(payload.get("sub"))
         if user_id is None:
             raise credentials_exception
         token_data = token.TokenData(user_id=user_id, role=payload.get("role"))
     except (JWTError, ValueError):
         raise credentials_exception
-    user = user_service.get_user_by_id(db, user_id=token_data.user_id)
-    if user is None:
+    
+    user_obj = user_service.get_user_by_id(db, user_id=token_data.user_id)
+    if user_obj is None:
         raise credentials_exception
-    return user
+    return user_obj
 
-def require_role(required_role: str):
+def require_role(required_roles):
+    """
+    Require user to have one of the specified roles
+    Can pass a single role string or a list of roles
+    """
+    if isinstance(required_roles, str):
+        required_roles = [required_roles]
+    
     def role_checker(current_user: user.User = Depends(get_current_user)):
-        if current_user.role != required_role:
+        if current_user.role not in required_roles:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="The user does not have enough privileges",

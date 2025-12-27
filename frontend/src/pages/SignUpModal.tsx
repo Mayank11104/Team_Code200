@@ -39,7 +39,7 @@ const SignUpModal: React.FC<SignUpModalProps> = ({ isOpen, onClose, onSwitchToLo
     }
 
     try {
-      const response = await fetch('http://127.0.0.1:8000/auth/signup', {
+      const response = await fetch('http://localhost:8000/auth/signup', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -49,6 +49,7 @@ const SignUpModal: React.FC<SignUpModalProps> = ({ isOpen, onClose, onSwitchToLo
           email: formData.email,
           password: formData.password,
         }),
+        credentials: 'include',
       });
 
       if (response.ok) {
@@ -95,11 +96,11 @@ const SignUpModal: React.FC<SignUpModalProps> = ({ isOpen, onClose, onSwitchToLo
   };
 
   return (
-    <div 
+    <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fadeIn"
       onClick={onClose}
     >
-      <div 
+      <div
         className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 animate-slideUp max-h-[95vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
@@ -228,9 +229,8 @@ const SignUpModal: React.FC<SignUpModalProps> = ({ isOpen, onClose, onSwitchToLo
                 placeholder="••••••••"
                 required
                 minLength={8}
-                className={`w-full pl-10 pr-12 py-3 border-2 ${
-                  errors.confirmPassword ? 'border-red-500' : 'border-gray-300'
-                } rounded-lg focus:border-[#090A0C] focus:outline-none transition-colors text-[#090A0C] hover:border-gray-400`}
+                className={`w-full pl-10 pr-12 py-3 border-2 ${errors.confirmPassword ? 'border-red-500' : 'border-gray-300'
+                  } rounded-lg focus:border-[#090A0C] focus:outline-none transition-colors text-[#090A0C] hover:border-gray-400`}
               />
               <button
                 type="button"
@@ -252,10 +252,10 @@ const SignUpModal: React.FC<SignUpModalProps> = ({ isOpen, onClose, onSwitchToLo
 
           {/* Terms & Conditions */}
           <div className="flex items-start">
-            <input 
-              type="checkbox" 
-              required 
-              className="w-4 h-4 border-2 border-gray-300 rounded cursor-pointer accent-[#090A0C] mt-1" 
+            <input
+              type="checkbox"
+              required
+              className="w-4 h-4 border-2 border-gray-300 rounded cursor-pointer accent-[#090A0C] mt-1"
             />
             <span className="ml-2 text-sm text-[#090A0C] opacity-80">
               I agree to the{' '}
