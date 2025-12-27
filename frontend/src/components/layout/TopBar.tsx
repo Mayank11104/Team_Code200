@@ -83,7 +83,7 @@ export function TopBar({ title }: TopBarProps) {
                   DM
                 </AvatarFallback>
               </Avatar>
-              <span className="hidden md:inline text-sm font-medium">David Miller</span>
+              <span className="hidden md:inline text-sm font-medium">Admin</span>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">
