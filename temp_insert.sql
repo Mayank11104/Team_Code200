@@ -1,1 +1,0 @@
-INSERT INTO "User" (name, email, password_hash, role, created_at, updated_at) VALUES ('Admin User', 'admin@example.com', '$argon2id$v=19$m=65536,t=3,p=4$B4DwnpPSujdGqBWiVGrtXQ$Brl5344W6ozq+GuTOmqZR6N/FwccFA1Mac6JMqw7Ur8', 'admin', NOW(), NOW());
