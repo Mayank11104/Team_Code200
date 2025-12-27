@@ -21,7 +21,7 @@ const COLORS = ['#2563eb', '#f59e0b', '#10b981', '#ef4444'];
 
 export default function Dashboard() {
   const recentRequests = maintenanceRequests.slice(0, 5);
-  const recentEquipment = equipment.filter(e => e.status !== 'scrapped').slice(0, 4);
+  const recentEquipment = equipment.filter(e => !e.isScrapped).slice(0, 4);
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -129,14 +129,14 @@ export default function Dashboard() {
                     </span>
                   )}
                   <span
-                    className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${eq.status === 'operational'
-                        ? 'bg-emerald-100 text-emerald-800'
-                        : eq.status === 'under-maintenance'
+                    className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${eq.isScrapped
+                        ? 'bg-red-100 text-red-800'
+                        : eq.openRequestsCount > 0
                           ? 'bg-amber-100 text-amber-800'
-                          : 'bg-red-100 text-red-800'
+                          : 'bg-emerald-100 text-emerald-800'
                       }`}
                   >
-                    {eq.status === 'operational' ? 'Operational' : eq.status === 'under-maintenance' ? 'Maintenance' : 'Scrapped'}
+                    {eq.isScrapped ? 'Scrapped' : eq.openRequestsCount > 0 ? 'Maintenance' : 'Operational'}
                   </span>
                 </div>
               </div>

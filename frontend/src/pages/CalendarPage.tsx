@@ -84,10 +84,10 @@ export default function CalendarPage() {
                   request.status === 'new'
                     ? 'bg-blue-100 text-blue-800'
                     : request.status === 'in-progress'
-                    ? 'bg-amber-100 text-amber-800'
-                    : request.status === 'repaired'
-                    ? 'bg-emerald-100 text-emerald-800'
-                    : 'bg-red-100 text-red-800'
+                      ? 'bg-amber-100 text-amber-800'
+                      : request.status === 'repaired'
+                        ? 'bg-emerald-100 text-emerald-800'
+                        : 'bg-red-100 text-red-800'
                 )}
               >
                 {request.subject}
@@ -210,7 +210,7 @@ export default function CalendarPage() {
                   <div>
                     <p className="font-medium text-foreground">{request.subject}</p>
                     <p className="text-sm text-muted-foreground">
-                      {request.equipment.name} • {request.duration}h
+                      {request.equipment.name}
                     </p>
                   </div>
                 </div>

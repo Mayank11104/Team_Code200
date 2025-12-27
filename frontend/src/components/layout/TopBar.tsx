@@ -1,4 +1,4 @@
-import { Bell, Search, User, LayoutDashboard, Cog, Wrench, Calendar, Users, FileText } from 'lucide-react';
+import { Bell, Search, User, LayoutDashboard, Cog, Wrench, Calendar, Users, FileText, MonitorPlay, Factory } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -18,10 +18,11 @@ interface TopBarProps {
 }
 
 const navItems = [
-  { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { path: '/equipment', label: 'Equipment', icon: Cog },
-  { path: '/requests', label: 'Maintenance Requests', icon: Wrench },
-  { path: '/calendar', label: 'Calendar', icon: Calendar },
+  { label: 'Dashboard', path: '/', icon: LayoutDashboard },
+  { label: 'Equipment', path: '/equipment', icon: MonitorPlay },
+  { label: 'Work Centers', path: '/work', icon: Factory },
+  { label: 'Requests', path: '/requests', icon: FileText },
+  { label: 'Calendar', path: '/calendar', icon: Calendar },
   { path: '/teams', label: 'Teams', icon: Users },
   { path: '/reports', label: 'Reports', icon: FileText },
 ];
@@ -71,11 +72,7 @@ export function TopBar({ title }: TopBarProps) {
           />
         </div>
 
-        {/* Notifications */}
-        <Button variant="ghost" size="icon" className="relative">
-          <Bell className="w-5 h-5" />
-          <span className="absolute top-1 right-1 w-2 h-2 bg-destructive rounded-full" />
-        </Button>
+
 
         {/* User Menu */}
         <DropdownMenu>

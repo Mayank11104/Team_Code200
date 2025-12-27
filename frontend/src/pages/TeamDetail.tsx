@@ -38,7 +38,7 @@ export default function TeamDetail() {
             </div>
             <div>
               <h1 className="text-2xl font-bold text-foreground">{team.name}</h1>
-              <p className="text-muted-foreground">{team.category}</p>
+              <p className="text-muted-foreground">{team.description}</p>
             </div>
           </div>
         </div>

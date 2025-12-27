@@ -25,7 +25,7 @@ export default function EquipmentDetail() {
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Scrap Warning Banner */}
-      {eq.status === 'scrapped' && (
+      {eq.isScrapped && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center gap-3">
           <AlertTriangle className="w-5 h-5 text-red-600" />
           <div>
@@ -59,9 +59,9 @@ export default function EquipmentDetail() {
             <button
               className={cn(
                 'smart-button',
-                eq.status === 'scrapped' && 'opacity-50 pointer-events-none'
+                eq.isScrapped && 'opacity-50 pointer-events-none'
               )}
-              disabled={eq.status === 'scrapped'}
+              disabled={eq.isScrapped}
             >
               <Wrench className="w-4 h-4 text-primary" />
               <span className="font-medium">Maintenance</span>
@@ -72,7 +72,7 @@ export default function EquipmentDetail() {
               )}
             </button>
           </Link>
-          <Button variant="outline" className="gap-2" disabled={eq.status === 'scrapped'}>
+          <Button variant="outline" className="gap-2" disabled={eq.isScrapped}>
             <Edit className="w-4 h-4" />
             Edit
           </Button>
@@ -119,15 +119,15 @@ export default function EquipmentDetail() {
                       eq.status === 'operational'
                         ? 'bg-emerald-100 text-emerald-800'
                         : eq.status === 'under-maintenance'
-                        ? 'bg-amber-100 text-amber-800'
-                        : 'bg-red-100 text-red-800'
+                          ? 'bg-amber-100 text-amber-800'
+                          : 'bg-red-100 text-red-800'
                     )}
                   >
                     {eq.status === 'operational'
                       ? 'Operational'
                       : eq.status === 'under-maintenance'
-                      ? 'Under Maintenance'
-                      : 'Scrapped'}
+                        ? 'Under Maintenance'
+                        : 'Scrapped'}
                   </span>
                 </p>
               </div>
@@ -220,8 +220,8 @@ export default function EquipmentDetail() {
               <div>
                 <label className="text-sm text-muted-foreground">Assigned Technician</label>
                 <div className="mt-2">
-                  {eq.assignedEmployee ? (
-                    <UserAvatar user={eq.assignedEmployee} showName size="md" />
+                  {eq.defaultTechnician ? (
+                    <UserAvatar user={eq.defaultTechnician} showName size="md" />
                   ) : (
                     <p className="text-muted-foreground">Not assigned</p>
                   )}

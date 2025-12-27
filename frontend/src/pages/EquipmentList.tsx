@@ -49,7 +49,7 @@ export default function EquipmentList() {
     }
     if (groupBy === 'employee') {
       return filteredEquipment.reduce((acc, eq) => {
-        const key = eq.assignedEmployee?.name || 'Unassigned';
+        const key = eq.defaultTechnician?.name || 'Unassigned';
         if (!acc[key]) acc[key] = [];
         acc[key].push(eq);
         return acc;
@@ -144,7 +144,7 @@ export default function EquipmentList() {
                     key={eq.id}
                     className={cn(
                       'cursor-pointer hover:bg-muted/50 transition-colors',
-                      eq.status === 'scrapped' && 'opacity-60'
+                      eq.isScrapped && 'opacity-60'
                     )}
                   >
                     <TableCell>
@@ -162,7 +162,7 @@ export default function EquipmentList() {
                     </TableCell>
                     <TableCell>{eq.department}</TableCell>
                     <TableCell>
-                      <UserAvatar user={eq.assignedEmployee} size="sm" showName />
+                      <UserAvatar user={eq.defaultTechnician} size="sm" showName />
                     </TableCell>
                     <TableCell>{eq.maintenanceTeam?.name || '-'}</TableCell>
                     <TableCell>
@@ -178,8 +178,8 @@ export default function EquipmentList() {
                           isWarrantyExpired
                             ? 'text-red-600'
                             : isWarrantySoon
-                            ? 'text-amber-600'
-                            : 'text-muted-foreground'
+                              ? 'text-amber-600'
+                              : 'text-muted-foreground'
                         )}
                       >
                         {isWarrantyExpired && <AlertTriangle className="w-3 h-3" />}
@@ -190,18 +190,14 @@ export default function EquipmentList() {
                       <span
                         className={cn(
                           'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium',
-                          eq.status === 'operational'
-                            ? 'bg-emerald-100 text-emerald-800'
-                            : eq.status === 'under-maintenance'
-                            ? 'bg-amber-100 text-amber-800'
-                            : 'bg-red-100 text-red-800'
+                          eq.isScrapped
+                            ? 'bg-red-100 text-red-800'
+                            : eq.openRequestsCount > 0
+                              ? 'bg-amber-100 text-amber-800'
+                              : 'bg-emerald-100 text-emerald-800'
                         )}
                       >
-                        {eq.status === 'operational'
-                          ? 'Operational'
-                          : eq.status === 'under-maintenance'
-                          ? 'Under Maintenance'
-                          : 'Scrapped'}
+                        {eq.isScrapped ? 'Scrapped' : eq.openRequestsCount > 0 ? 'Maintenance' : 'Operational'}
                       </span>
                     </TableCell>
                   </TableRow>
